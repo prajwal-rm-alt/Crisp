@@ -27,9 +27,9 @@ export const DynamicIsland: React.FC<DynamicIslandProps> = ({
     <button
       type="button"
       onClick={onOpenAI}
-      className={`group relative cursor-pointer flex items-center justify-between h-[28px] px-2.5 sm:px-3 rounded-full bg-neutral-950 text-white border border-white/20 dark:border-white/30 shadow-md transition-all duration-300 ease-out hover:scale-105 active:scale-95 select-none ${
+      className={`group relative cursor-pointer flex items-center justify-between h-[28px] px-2 sm:px-3 rounded-full bg-neutral-950 text-white border border-white/20 dark:border-white/30 shadow-md transition-all duration-300 ease-out hover:scale-105 active:scale-95 select-none ${
         pulse ? 'ring-2 ring-white/60 scale-[1.03]' : ''
-      } max-w-[170px] sm:max-w-[240px]`}
+      } max-w-[110px] xs:max-w-[155px] sm:max-w-[240px]`}
       title="Tap to open AI Chef Assistant in full"
       aria-label="Open AI Assistant"
     >

@@ -14,9 +14,12 @@ const port = parseInt(process.env.PORT || '3000', 10);
 
 app.use(express.json({ limit: '10mb' }));
 
+// Default API Key from Google AI Studio
+const DEFAULT_GEMINI_KEY = 'AIzaSyDxrDQPUZWfspw0mlBC-fBbgSil1n40PdU';
+
 // Helper to get GoogleGenAI client
 function getGenAIClient(customApiKey?: string): GoogleGenAI {
-  const key = customApiKey?.trim() || process.env.GEMINI_API_KEY;
+  const key = customApiKey?.trim() || process.env.GEMINI_API_KEY || DEFAULT_GEMINI_KEY;
   if (!key) {
     throw new Error('No Gemini API key configured. Please configure it in Settings or provide an API key.');
   }
@@ -332,6 +335,23 @@ Provide realistic official specifications, dimensions, promoter sales hooks, rec
     console.error('Product Intel Error:', error);
     res.status(500).json({ error: error.message || 'Error generating product intel' });
   }
+});
+
+// JSON fallback for any unhandled /api/* route to prevent returning HTML
+app.all('/api/*', (_req, res) => {
+  res.status(404).json({
+    success: false,
+    error: 'API endpoint not found',
+  });
+});
+
+// Global JSON error handler
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('Unhandled API Error:', err);
+  res.status(err.status || 500).json({
+    success: false,
+    error: err.message || 'Internal server error',
+  });
 });
 
 // Vite server middleware or static serving

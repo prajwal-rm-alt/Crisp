@@ -94,7 +94,7 @@ export function resetCatalogToDefault(): Product[] {
 // Theme persistence
 export function loadTheme(): AppTheme {
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.THEME) as AppTheme;
+    const raw = (localStorage.getItem(STORAGE_KEYS.THEME) || localStorage.getItem('sales_hub_theme')) as AppTheme;
     if (raw === 'light' || raw === 'dark') {
       return raw;
     }
@@ -107,17 +107,22 @@ export function loadTheme(): AppTheme {
 export function saveTheme(theme: AppTheme): void {
   try {
     localStorage.setItem(STORAGE_KEYS.THEME, theme);
+    localStorage.setItem('sales_hub_theme', theme);
   } catch (e) {
     console.error('Error saving theme:', e);
   }
 }
 
+// Default Google AI Studio API Key from user
+export const DEFAULT_API_KEY = 'AIzaSyDxrDQPUZWfspw0mlBC-fBbgSil1n40PdU';
+
 // Custom Gemini API Key persistence
 export function loadCustomApiKey(): string {
   try {
-    return localStorage.getItem(STORAGE_KEYS.API_KEY) || '';
+    const stored = localStorage.getItem(STORAGE_KEYS.API_KEY);
+    return stored && stored.trim() ? stored.trim() : DEFAULT_API_KEY;
   } catch (e) {
-    return '';
+    return DEFAULT_API_KEY;
   }
 }
 

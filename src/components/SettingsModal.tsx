@@ -58,25 +58,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   initialTab,
   initialProductToEdit,
 }) => {
+  // 1. All useState hooks grouped at top level
   const [activeTab, setActiveTab] = useState<'profile' | 'images' | 'catalog' | 'ai-generator' | 'ai-key' | 'appearance'>(
     initialTab || 'profile'
   );
   const [selectedProductToEdit, setSelectedProductToEdit] = useState<string | undefined>(initialProductToEdit);
-
-  useEffect(() => {
-    if (initialTab) {
-      setActiveTab(initialTab);
-    }
-    if (initialProductToEdit) {
-      setSelectedProductToEdit(initialProductToEdit);
-    }
-  }, [initialTab, initialProductToEdit, isOpen]);
-
-  // Profile Form state
   const [profileForm, setProfileForm] = useState<PromoterProfile>({ ...profile });
   const [profileSaved, setProfileSaved] = useState(false);
-
-  // API Key state
   const [apiKeyInput, setApiKeyInput] = useState(customApiKey || '');
   const [isTestingKey, setIsTestingKey] = useState(false);
   const [keyTestResult, setKeyTestResult] = useState<{
@@ -86,8 +74,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     error?: string;
   } | null>(null);
   const [apiKeySaved, setApiKeySaved] = useState(false);
-
-  // AI Product Generator state
   const [genBrand, setGenBrand] = useState('Morphy Richards');
   const [genCategory, setGenCategory] = useState('Air Fryers');
   const [genModelName, setGenModelName] = useState('Morphy Richards 6.5L Digital Dual Zone Air Fryer');
@@ -95,7 +81,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [generatedProduct, setGeneratedProduct] = useState<Partial<Product> | null>(null);
   const [genSuccessMsg, setGenSuccessMsg] = useState('');
 
-  // Close on Escape key - declared at top level with all other hooks
+  // 2. All useEffect hooks placed after useState hooks
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+    if (initialProductToEdit) {
+      setSelectedProductToEdit(initialProductToEdit);
+    }
+  }, [initialTab, initialProductToEdit]);
+
+  useEffect(() => {
+    if (customApiKey && customApiKey !== apiKeyInput) {
+      setApiKeyInput(customApiKey);
+    }
+  }, [customApiKey]);
+
+  // Close on Escape key
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -113,7 +115,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setTimeout(() => setProfileSaved(false), 2500);
   };
 
-  // Handle API Key Test
+  // Handle API Key Test with safe content-type parsing
   const handleTestApiKey = async () => {
     setIsTestingKey(true);
     setKeyTestResult(null);
@@ -123,11 +125,30 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ apiKey: apiKeyInput.trim() }),
       });
-      const data = await res.json();
+
+      const contentType = res.headers.get('content-type') || '';
+      let data: any = null;
+      if (contentType.includes('application/json')) {
+        try {
+          data = await res.json();
+        } catch {
+          data = null;
+        }
+      }
+
+      if (!data) {
+        const text = await res.text();
+        throw new Error(
+          res.ok
+            ? 'Unexpected server response format'
+            : `Server returned HTTP ${res.status}: ${text.slice(0, 100)}`
+        );
+      }
+
       if (res.ok && data.success) {
         setKeyTestResult({
           success: true,
-          message: data.message,
+          message: data.message || 'Connected to Google AI Studio Gemini API',
           latencyMs: data.latencyMs,
         });
       } else {
@@ -172,7 +193,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         }),
       });
 
-      const data = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      let data: any = null;
+      if (contentType.includes('application/json')) {
+        try {
+          data = await res.json();
+        } catch {
+          data = null;
+        }
+      }
+
+      if (!data) {
+        const text = await res.text();
+        throw new Error(
+          res.ok
+            ? 'Unexpected response format'
+            : `Server returned HTTP ${res.status}: ${text.slice(0, 100)}`
+        );
+      }
+
       if (!res.ok) {
         throw new Error(data.error || 'Failed to generate product dossier');
       }
@@ -277,20 +316,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-x-0 bottom-0 top-16 z-[90] flex items-start sm:items-center justify-center p-3 sm:p-5 md:p-6 bg-black/40 dark:bg-black/85 backdrop-blur-xl overflow-y-auto"
+      className="fixed inset-x-0 bottom-0 top-16 z-[90] flex items-start sm:items-center justify-center p-2 sm:p-5 md:p-6 bg-black/40 dark:bg-black/85 backdrop-blur-xl overflow-y-auto"
     >
-      <div className="w-full max-w-4xl rounded-3xl glass-panel border border-black/15 dark:border-white/20 shadow-2xl overflow-hidden my-auto max-h-[calc(100vh-5.5rem)] flex flex-col text-black dark:text-white transition-colors">
+      <div className="w-full max-w-4xl rounded-2xl sm:rounded-3xl glass-panel border border-black/15 dark:border-white/20 shadow-2xl overflow-hidden my-auto max-h-[calc(100vh-4.5rem)] sm:max-h-[calc(100vh-5.5rem)] flex flex-col text-black dark:text-white transition-colors">
         {/* Header */}
-        <div className="px-5 py-3.5 bg-black/5 dark:bg-white/5 border-b border-black/10 dark:border-white/10 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center font-bold">
+        <div className="px-3.5 sm:px-5 py-3 bg-black/5 dark:bg-white/5 border-b border-black/10 dark:border-white/10 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center font-bold shrink-0">
               <Store className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="font-playfair text-base font-bold tracking-tight">
+              <h2 className="font-playfair text-sm sm:text-base font-bold tracking-tight">
                 Hub Settings & Catalog Manager
               </h2>
-              <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+              <p className="text-[10px] sm:text-[11px] text-neutral-500 dark:text-neutral-400 truncate max-w-[200px] xs:max-w-none">
                 Promoter profile, Gemini keys, AI specs generator & monochrome theme
               </p>
             </div>
@@ -304,7 +343,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Tab navigation bar */}
-        <div className="px-4 py-2 bg-black/[0.02] dark:bg-white/[0.02] border-b border-black/5 dark:border-white/5 flex gap-2 overflow-x-auto shrink-0 no-scrollbar">
+        <div className="px-3 sm:px-4 py-2 bg-black/[0.02] dark:bg-white/[0.02] border-b border-black/5 dark:border-white/5 flex gap-1.5 sm:gap-2 overflow-x-auto shrink-0 no-scrollbar">
           {[
             { id: 'profile', label: 'Promoter Profile', icon: User },
             { id: 'images', label: 'Edit Images & Gallery', icon: Camera },

@@ -167,6 +167,19 @@ export default function App() {
     });
   }, [catalog, selectedBrand, selectedCategory, searchQuery]);
 
+  // Models matching current category and brand filters for the dropdown
+  const availableModelsForDropdown = useMemo(() => {
+    return catalog.filter((p) => {
+      if (selectedBrand !== 'All' && p.brand.toLowerCase() !== selectedBrand.toLowerCase()) {
+        return false;
+      }
+      if (selectedCategory !== 'All' && p.category !== selectedCategory) {
+        return false;
+      }
+      return true;
+    });
+  }, [catalog, selectedBrand, selectedCategory]);
+
   // Aggregate all recipes across products for the Pure Image Gallery
   const allRecipesWithProduct = useMemo(() => {
     const list: { recipe: ProductRecipe; product: Product }[] = [];
@@ -239,54 +252,54 @@ export default function App() {
       />
 
       {/* Main Presentation Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-7 space-y-6">
-        {/* Simple, Genuine Demonstration Showcase Header (No aggressive sales quotas) */}
-        <section className="text-center sm:text-left flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-3 border-b border-black/10 dark:border-white/10">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6 space-y-5 sm:space-y-6">
+        {/* Demonstration Showcase Header */}
+        <section className="text-left flex flex-col sm:flex-row sm:items-end justify-between gap-3.5 pb-3 border-b border-black/10 dark:border-white/10">
           <div>
-            <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
-              <span className="w-2 h-2 rounded-full bg-black dark:bg-white animate-pulse" />
-              <span className="font-playfair text-xs uppercase tracking-widest text-neutral-500 dark:text-neutral-400 font-bold">
-                {profile.storeLocation} · Floor Demonstration
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-black dark:bg-white animate-pulse" />
+              <span className="font-playfair text-[10px] sm:text-xs uppercase tracking-widest text-neutral-500 dark:text-neutral-400 font-bold">
+                {profile.storeLocation} · Demonstration Hub
               </span>
             </div>
-            <h1 className="font-playfair text-3xl sm:text-4xl font-bold tracking-tight">
+            <h1 className="font-playfair text-2xl sm:text-4xl font-bold tracking-tight">
               Culinary & Appliance Gallery
             </h1>
             <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mt-1 font-serif max-w-xl">
-              Explore authentic dishes and gourmet recipes that can be prepared with our premier Morphy Richards & Bajaj kitchen appliances.
+              Explore authentic dishes and gourmet recipes prepared with our premier Morphy Richards & Bajaj appliances.
             </p>
           </div>
 
           {/* Primary View Switcher: Prepared Food Gallery vs Appliances */}
-          <div className="flex items-center justify-center gap-1.5 p-1 bg-black/5 dark:bg-white/10 rounded-2xl border border-black/10 dark:border-white/10 shrink-0 self-center sm:self-end">
+          <div className="w-full sm:w-auto grid grid-cols-2 sm:flex items-center p-1 bg-black/5 dark:bg-white/10 rounded-2xl border border-black/10 dark:border-white/10 shrink-0">
             <button
               onClick={() => setActiveView('gallery')}
-              className={`px-4 py-2 rounded-xl text-xs font-playfair font-semibold flex items-center gap-1.5 transition ${
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-playfair font-semibold flex items-center justify-center gap-1.5 transition ${
                 activeView === 'gallery'
                   ? 'bg-black text-white dark:bg-white dark:text-black shadow-md'
                   : 'text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
               }`}
             >
-              <ChefHat className="w-3.5 h-3.5" />
-              <span>Prepared Dishes Gallery</span>
+              <ChefHat className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">Dishes Gallery</span>
             </button>
             <button
               onClick={() => setActiveView('appliances')}
-              className={`px-4 py-2 rounded-xl text-xs font-playfair font-semibold flex items-center gap-1.5 transition ${
+              className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-playfair font-semibold flex items-center justify-center gap-1.5 transition ${
                 activeView === 'appliances'
                   ? 'bg-black text-white dark:bg-white dark:text-black shadow-md'
                   : 'text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
               }`}
             >
-              <Layers className="w-3.5 h-3.5" />
-              <span>Appliances Models ({filteredProducts.length})</span>
+              <Layers className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">Appliances ({filteredProducts.length})</span>
             </button>
           </div>
         </section>
 
         {/* Search & Category Filter Navigation */}
         <section className="space-y-3">
-          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-stretch sm:items-center justify-between">
             {/* Search Input */}
             <div className="relative flex-1 max-w-md">
               <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
@@ -295,7 +308,7 @@ export default function App() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search dishes (samosa, cake, tikka) or models..."
-                className="w-full bg-white dark:bg-neutral-900 border border-black/15 dark:border-white/15 focus:border-black dark:focus:border-white text-black dark:text-white rounded-2xl pl-10 pr-4 py-2.5 text-sm placeholder:text-neutral-400 focus:outline-none transition shadow-sm"
+                className="w-full bg-white dark:bg-neutral-900 border border-black/15 dark:border-white/15 focus:border-black dark:focus:border-white text-black dark:text-white rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm placeholder:text-neutral-400 focus:outline-none transition shadow-sm"
               />
               {searchQuery && (
                 <button
@@ -307,51 +320,40 @@ export default function App() {
               )}
             </div>
 
-            {/* Brand Toggle and AI Button */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setSelectedBrand('All')}
-                className={`px-3.5 py-2 rounded-2xl text-xs font-playfair font-semibold transition ${
-                  selectedBrand === 'All'
-                    ? 'bg-black text-white dark:bg-white dark:text-black shadow-md'
-                    : 'bg-black/5 dark:bg-white/5 text-neutral-700 dark:text-neutral-300 hover:bg-black/10 dark:hover:bg-white/10 border border-black/10 dark:border-white/10'
-                }`}
-              >
-                All Brands
-              </button>
-
-              <button
-                onClick={() => setSelectedBrand('Bajaj')}
-                className={`px-3.5 py-2 rounded-2xl text-xs font-playfair font-semibold transition ${
-                  selectedBrand === 'Bajaj'
-                    ? 'bg-black text-white dark:bg-white dark:text-black shadow-md'
-                    : 'bg-black/5 dark:bg-white/5 text-neutral-700 dark:text-neutral-300 hover:bg-black/10 dark:hover:bg-white/10 border border-black/10 dark:border-white/10'
-                }`}
-              >
-                Bajaj
-              </button>
-
-              <button
-                onClick={() => setSelectedBrand('Morphy Richards')}
-                className={`px-3.5 py-2 rounded-2xl text-xs font-playfair font-semibold transition ${
-                  selectedBrand === 'Morphy Richards'
-                    ? 'bg-black text-white dark:bg-white dark:text-black shadow-md'
-                    : 'bg-black/5 dark:bg-white/5 text-neutral-700 dark:text-neutral-300 hover:bg-black/10 dark:hover:bg-white/10 border border-black/10 dark:border-white/10'
-                }`}
-              >
-                Morphy Richards
-              </button>
+            {/* Brand Toggle */}
+            <div className="grid grid-cols-3 sm:flex items-center gap-1.5 sm:gap-2">
+              {(['All', 'Bajaj', 'Morphy Richards'] as BrandFilter[]).map((b) => (
+                <button
+                  key={b}
+                  onClick={() => setSelectedBrand(b)}
+                  className={`px-3 py-2 rounded-2xl text-xs font-playfair font-semibold transition text-center truncate ${
+                    selectedBrand === b
+                      ? 'bg-black text-white dark:bg-white dark:text-black shadow-md'
+                      : 'bg-black/5 dark:bg-white/5 text-neutral-700 dark:text-neutral-300 hover:bg-black/10 dark:hover:bg-white/10 border border-black/10 dark:border-white/10'
+                  }`}
+                >
+                  {b === 'All' ? 'All Brands' : b}
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Category Chips Bar */}
-          <div className="flex items-center gap-1.5 overflow-x-auto py-1 no-scrollbar">
+          <div className="flex items-center gap-1.5 overflow-x-auto py-1 no-scrollbar -mx-3 px-3 sm:mx-0 sm:px-0">
             {CATEGORIES.map((cat) => {
               const isSelected = selectedCategory === cat;
               return (
                 <button
                   key={cat}
-                  onClick={() => setSelectedCategory(cat)}
+                  onClick={() => {
+                    setSelectedCategory(cat);
+                    if (selectedModelId !== 'All') {
+                      const currentModel = catalog.find((p) => p.id === selectedModelId);
+                      if (currentModel && cat !== 'All' && currentModel.category !== cat) {
+                        setSelectedModelId('All');
+                      }
+                    }
+                  }}
                   className={`px-3.5 py-1.5 text-xs font-playfair font-semibold rounded-full transition whitespace-nowrap shrink-0 ${
                     isSelected
                       ? 'bg-black text-white dark:bg-white dark:text-black shadow-md'
@@ -369,23 +371,23 @@ export default function App() {
         {activeView === 'gallery' && (
           <section className="space-y-4">
             {/* Gallery Header & Filter Selection Bar */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-2 border-b border-black/10 dark:border-white/10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-black/10 dark:border-white/10">
               <div>
-                <h2 className="font-playfair text-xl sm:text-2xl font-bold tracking-tight flex items-center gap-2">
+                <h2 className="font-playfair text-lg sm:text-2xl font-bold tracking-tight flex items-center gap-2">
                   <span>Prepared Dishes Gallery</span>
                   <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-neutral-600 dark:text-neutral-300 font-normal">
                     {allRecipesWithProduct.length} dishes
                   </span>
                 </h2>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 font-serif">
-                  Pure culinary visual gallery. Select category or appliance model to filter; tap any dish image to let AI Chef reveal the recipe.
+                  Select category or model to filter. Tap any dish image to let AI Chef show the recipe.
                 </p>
               </div>
 
               {/* Filtering Controls: Appliance Model & Category selection */}
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <div className="flex flex-wrap items-center gap-2">
                 {/* Model Selection Dropdown */}
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 w-full xs:w-auto">
                   <span className="text-xs font-playfair font-semibold text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
                     Model:
                   </span>
@@ -393,12 +395,12 @@ export default function App() {
                     value={selectedModelId}
                     onChange={(e) => setSelectedModelId(e.target.value)}
                     aria-label="Filter dishes by appliance model"
-                    className="px-3 py-1.5 rounded-xl text-xs font-playfair bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 border border-black/15 dark:border-white/20 text-black dark:text-white focus:outline-none cursor-pointer max-w-[210px] sm:max-w-[260px] truncate transition shadow-sm"
+                    className="flex-1 xs:flex-initial px-3 py-1.5 rounded-xl text-xs font-playfair bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 border border-black/15 dark:border-white/20 text-black dark:text-white focus:outline-none cursor-pointer max-w-full xs:max-w-[260px] truncate transition shadow-sm"
                   >
                     <option value="All" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
                       All Models ({catalog.length})
                     </option>
-                    {catalog.map((prod) => (
+                    {availableModelsForDropdown.map((prod) => (
                       <option
                         key={prod.id}
                         value={prod.id}
@@ -411,34 +413,25 @@ export default function App() {
                 </div>
 
                 {/* Reset Filters button if any filter is active */}
-                {(selectedCategory !== 'All' || selectedModelId !== 'All' || selectedBrand !== 'All') && (
+                {(selectedCategory !== 'All' || selectedModelId !== 'All' || selectedBrand !== 'All' || searchQuery) && (
                   <button
                     onClick={() => {
                       setSelectedCategory('All');
                       setSelectedModelId('All');
                       setSelectedBrand('All');
+                      setSearchQuery('');
                     }}
                     className="px-2.5 py-1.5 text-[11px] font-playfair font-semibold rounded-xl bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-neutral-600 dark:text-neutral-300 border border-black/10 dark:border-white/10 transition"
                   >
                     Clear Filter
                   </button>
                 )}
-
-                <button
-                  type="button"
-                  onClick={() => handleOpenSettings('images')}
-                  className="px-2.5 py-1.5 rounded-xl border border-black/15 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/10 text-xs font-playfair font-medium flex items-center gap-1.5 transition text-black dark:text-white"
-                  title="Open Image & Dish Editor in Settings"
-                >
-                  <Camera className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Edit Images</span>
-                </button>
               </div>
             </div>
 
             {/* Empty State */}
             {allRecipesWithProduct.length === 0 ? (
-              <div className="glass-panel rounded-3xl p-10 text-center space-y-3 border border-black/10 dark:border-white/15">
+              <div className="glass-panel rounded-3xl p-8 sm:p-10 text-center space-y-3 border border-black/10 dark:border-white/15">
                 <ChefHat className="w-8 h-8 mx-auto text-neutral-400" />
                 <h3 className="font-playfair text-lg font-bold">No dishes found for this filter</h3>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto font-serif">
@@ -458,12 +451,12 @@ export default function App() {
               </div>
             ) : (
               /* PURE DISH IMAGES ONLY - NO CARDS, NO LINKS, JUST IMAGES */
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-4">
                 {allRecipesWithProduct.map(({ recipe, product }, idx) => (
                   <div
                     key={`${product.id}-${recipe.id}-${idx}`}
                     onClick={() => handleOpenRecipeInAIChef(product, recipe)}
-                    className="group relative aspect-[4/3] rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer bg-neutral-100 dark:bg-neutral-900 shadow-sm hover:shadow-2xl transition-all duration-300 select-none transform hover:-translate-y-1"
+                    className="group relative aspect-[4/3] rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer bg-neutral-100 dark:bg-neutral-900 shadow-sm hover:shadow-2xl transition-all duration-300 select-none transform hover:-translate-y-1 active:scale-[0.98]"
                     title={`Tap image to have AI Chef show recipe: ${recipe.name} (${product.name})`}
                   >
                     <img
@@ -471,36 +464,23 @@ export default function App() {
                       alt={recipe.name}
                       referrerPolicy="no-referrer"
                       loading="lazy"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       onError={(e) => {
                         e.currentTarget.src =
                           'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80';
                       }}
                     />
 
-                    {/* Subtle aesthetic overlay on hover revealing AI Chef prompt */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2.5 sm:p-3 pointer-events-none">
-                      <span className="text-white text-xs font-playfair font-bold line-clamp-1 leading-snug drop-shadow">
+                    {/* Clean bottom gradient badge with dish name & AI Chef prompt */}
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-2 sm:p-2.5 flex flex-col justify-end pointer-events-none transition-opacity duration-200">
+                      <span className="text-white text-[11px] sm:text-xs font-playfair font-bold line-clamp-1 leading-snug drop-shadow-sm">
                         {recipe.name}
                       </span>
-                      <span className="text-amber-300 text-[10px] font-serif flex items-center gap-1 mt-0.5">
-                        <Bot className="w-3 h-3 text-amber-400" />
-                        Ask AI Chef for Recipe
+                      <span className="text-amber-300 text-[9px] sm:text-[10px] font-serif flex items-center gap-1 mt-0.5 opacity-90 group-hover:opacity-100">
+                        <Bot className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+                        <span className="truncate">AI Chef Recipe</span>
                       </span>
                     </div>
-
-                    {/* Quiet shortcut to edit photo in settings on hover */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenSettings('images', product.id);
-                      }}
-                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 hover:bg-black/90 text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition shadow"
-                      title="Edit dish image in Settings"
-                    >
-                      <Camera className="w-3 h-3" />
-                    </button>
                   </div>
                 ))}
               </div>

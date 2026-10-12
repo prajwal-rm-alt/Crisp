@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -23,7 +23,7 @@
     <script>
       (function() {
         try {
-          var t = localStorage.getItem('sales_hub_theme_v2') || 'dark';
+          var t = localStorage.getItem('sales_hub_theme_v2') || localStorage.getItem('sales_hub_theme') || 'dark';
           var doc = document.documentElement;
           doc.classList.remove('dark', 'light');
           doc.classList.add(t);

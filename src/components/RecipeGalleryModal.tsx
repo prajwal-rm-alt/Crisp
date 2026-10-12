@@ -49,16 +49,16 @@ export const RecipeGalleryModal: React.FC<RecipeGalleryModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-x-0 bottom-0 top-16 z-[90] flex items-center justify-center p-3 sm:p-5 bg-black/40 dark:bg-black/85 backdrop-blur-xl overflow-y-auto animate-in fade-in duration-200"
+      className="fixed inset-x-0 bottom-0 top-16 z-[90] flex items-center justify-center p-2.5 sm:p-5 bg-black/40 dark:bg-black/85 backdrop-blur-xl overflow-y-auto animate-in fade-in duration-200"
     >
-      <div className="w-full max-w-2xl max-h-[calc(100vh-5.5rem)] rounded-3xl glass-panel border border-black/15 dark:border-white/20 shadow-2xl overflow-hidden flex flex-col text-black dark:text-white transition-colors">
+      <div className="w-full max-w-2xl max-h-[calc(100vh-4.5rem)] sm:max-h-[calc(100vh-5.5rem)] rounded-2xl sm:rounded-3xl glass-panel border border-black/15 dark:border-white/20 shadow-2xl overflow-hidden flex flex-col text-black dark:text-white transition-colors">
         {/* Header */}
-        <div className="px-5 py-3.5 bg-black/5 dark:bg-white/5 border-b border-black/10 dark:border-white/10 flex items-center justify-between shrink-0">
+        <div className="px-4 sm:px-5 py-3 bg-black/5 dark:bg-white/5 border-b border-black/10 dark:border-white/10 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <span className="font-playfair text-xs uppercase tracking-wider font-bold px-2.5 py-0.5 rounded-full bg-black text-white dark:bg-white dark:text-black">
               {product.brand}
             </span>
-            <span className="font-playfair text-xs font-semibold truncate text-neutral-600 dark:text-neutral-400">
+            <span className="font-playfair text-xs font-semibold truncate text-neutral-600 dark:text-neutral-400 max-w-[180px] sm:max-w-xs">
               {product.name}
             </span>
           </div>
@@ -78,9 +78,9 @@ export const RecipeGalleryModal: React.FC<RecipeGalleryModalProps> = ({
         </div>
 
         {/* Clean, Non-Bulky Visual Container */}
-        <div className="p-4 sm:p-6 space-y-4">
+        <div className="p-3.5 sm:p-6 space-y-3.5 sm:space-y-4 overflow-y-auto">
           {/* Main Photo with smooth navigation arrows */}
-          <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-neutral-900 shadow-xl border border-black/10 dark:border-white/10">
+          <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 shadow-xl border border-black/10 dark:border-white/10">
             <img
               src={current.imageUrl}
               alt={current.name}

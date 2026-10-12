@@ -123,6 +123,40 @@
   );
 }
 
+/* Dedicated Glowing Thinking Beam across top of screen & navbar */
+.navbar-thinking-beam {
+  position: relative;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(234, 179, 8, 0.25) 15%,
+    rgba(245, 158, 11, 0.85) 35%,
+    rgba(254, 240, 138, 1) 50%,
+    rgba(245, 158, 11, 0.85) 65%,
+    rgba(234, 179, 8, 0.25) 85%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: thinking-shimmer 2.6s linear infinite;
+  box-shadow: 0 0 12px rgba(234, 179, 8, 0.6), 0 0 24px rgba(245, 158, 11, 0.3);
+}
+
+.light .navbar-thinking-beam {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(217, 119, 6, 0.2) 15%,
+    rgba(234, 179, 8, 0.85) 35%,
+    rgba(251, 191, 36, 1) 50%,
+    rgba(234, 179, 8, 0.85) 65%,
+    rgba(217, 119, 6, 0.2) 85%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: thinking-shimmer 2.6s linear infinite;
+  box-shadow: 0 0 10px rgba(217, 119, 6, 0.4);
+}
+
 /* Playfair Display font utility */
 .font-playfair {
   font-family: 'Playfair Display', Georgia, serif !important;

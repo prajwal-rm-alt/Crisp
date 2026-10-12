@@ -67,8 +67,17 @@ ${guide.youtubeUrl}`;
         }),
       });
 
-      const data = await response.json();
-      if (response.ok && data.reply) {
+      const contentType = response.headers.get('content-type') || '';
+      let data: any = null;
+      if (contentType.includes('application/json')) {
+        try {
+          data = await response.json();
+        } catch {
+          data = null;
+        }
+      }
+
+      if (response.ok && data?.reply) {
         setCustomTip(data.reply);
       } else {
         setCustomTip('Tip: Spray light cooking oil and avoid overcrowding for maximum crispiness.');

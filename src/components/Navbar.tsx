@@ -40,33 +40,38 @@ export const Navbar: React.FC<NavbarProps> = ({
   const isDark = theme === 'dark';
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[9999] w-full h-16 bg-white/95 dark:bg-black/95 backdrop-blur-xl text-black dark:text-white border-b border-black/10 dark:border-white/10 shadow-sm transition-colors duration-300">
-      {/* Top subtle thinking shine line */}
-      <div className="absolute top-0 inset-x-0 h-[2px] overflow-hidden pointer-events-none">
-        <div className="w-full h-full thinking-shimmer-bar" />
+    <header className="fixed top-0 left-0 right-0 z-[9999] w-full h-16 bg-white/95 dark:bg-black/95 backdrop-blur-xl text-black dark:text-white border-b border-black/10 dark:border-white/10 shadow-[0_4px_20px_-4px_rgba(234,179,8,0.15)] dark:shadow-[0_4px_25px_-2px_rgba(234,179,8,0.25)] transition-colors duration-300">
+      {/* Top Thinking Luminous Shine Beam */}
+      <div className="absolute top-0 inset-x-0 h-[2px] overflow-hidden pointer-events-none z-20">
+        <div className="w-full h-full navbar-thinking-beam" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4 relative">
+      {/* Bottom Thinking Luminous Shine Beam (shines like thinking text) */}
+      <div className="absolute -bottom-[1px] inset-x-0 h-[2px] overflow-hidden pointer-events-none z-20">
+        <div className="w-full h-full navbar-thinking-beam" />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-1.5 sm:gap-4 relative">
         {/* Zone 1: Brand Wordmark with Thinking Text Shimmer */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-md relative overflow-hidden group">
-              <span className="font-playfair text-sm font-bold tracking-widest relative z-10">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-md relative overflow-hidden group shrink-0">
+              <span className="font-playfair text-xs sm:text-sm font-bold tracking-widest relative z-10">
                 S
               </span>
               <div className="absolute inset-0 thinking-shimmer-bar opacity-40" />
             </div>
             <div className="flex flex-col">
-              <span className="font-playfair text-lg sm:text-xl font-bold tracking-[0.18em] uppercase leading-none thinking-shimmer-text">
+              <span className="font-playfair text-base sm:text-xl font-bold tracking-[0.16em] uppercase leading-none thinking-shimmer-text">
                 SALES
               </span>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-[8px] sm:text-[9px] uppercase tracking-widest text-neutral-500 dark:text-neutral-400 font-medium leading-tight">
+              <div className="flex items-center gap-1 mt-0.5">
+                <span className="text-[7.5px] sm:text-[9px] uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-medium leading-tight">
                   Promoters Hub
                 </span>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[7px] font-mono uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold px-1 py-0.2 rounded bg-amber-500/10 border border-amber-500/20">
+                <span className="inline-flex items-center gap-0.5 text-[7px] font-mono uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold px-1 py-0.2 rounded bg-amber-500/10 border border-amber-500/20">
                   <span className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
-                  Thinking
+                  <span className="hidden xs:inline">Thinking</span>
                 </span>
               </div>
             </div>
@@ -91,12 +96,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Zone 3: Actions & Profile */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {/* PWA Install Button */}
           {isInstallable && (
             <button
               onClick={onInstallApp}
-              className="px-2.5 sm:px-3 py-1.5 bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/15 border border-black/15 dark:border-white/20 text-black dark:text-white rounded-full text-xs font-medium flex items-center gap-1.5 transition active:scale-95"
+              className="p-1.5 sm:px-3 sm:py-1.5 bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/15 border border-black/15 dark:border-white/20 text-black dark:text-white rounded-full text-xs font-medium flex items-center gap-1.5 transition active:scale-95"
               title="Install app on this device"
             >
               <Download className="w-3.5 h-3.5" />
@@ -104,10 +109,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           )}
 
-          {/* AI Trigger */}
+          {/* AI Trigger (desktop/tablet; on mobile Dynamic Island serves as the AI Chef trigger) */}
           <button
             onClick={onOpenAI}
-            className={`p-2 sm:px-3 sm:py-1.5 rounded-full border text-xs font-medium flex items-center gap-1.5 transition shadow-sm active:scale-95 ${
+            className={`hidden sm:flex p-1.5 sm:px-3 sm:py-1.5 rounded-full border text-xs font-medium items-center gap-1.5 transition shadow-sm active:scale-95 ${
               isAIOpen
                 ? 'bg-black text-white dark:bg-white dark:text-black border-black dark:border-white shadow'
                 : 'bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 border-black/10 dark:border-white/15 text-black dark:text-white'
@@ -121,7 +126,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Theme Switcher: Crisp Black & White */}
           <button
             onClick={onToggleTheme}
-            className="p-2 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 border border-black/10 dark:border-white/15 text-black dark:text-white transition shadow-sm active:scale-90"
+            className="p-1.5 sm:p-2 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 border border-black/10 dark:border-white/15 text-black dark:text-white transition shadow-sm active:scale-90"
             title={`Current: ${isDark ? 'Black' : 'White'} mode. Click to switch.`}
             aria-label="Toggle Black and White Theme"
           >
@@ -135,7 +140,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Settings Trigger with Active State */}
           <button
             onClick={() => onOpenSettings()}
-            className={`p-2 rounded-full border transition active:scale-90 ${
+            className={`p-1.5 sm:p-2 rounded-full border transition active:scale-90 ${
               isSettingsOpen
                 ? 'bg-black text-white dark:bg-white dark:text-black border-black dark:border-white shadow-sm ring-1 ring-black dark:ring-white'
                 : 'bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 border-black/10 dark:border-white/15 text-black dark:text-white'
@@ -146,10 +151,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             <SettingsIcon className="w-4 h-4" />
           </button>
 
-          {/* Promoter Profile Avatar Chip */}
+          {/* Promoter Profile Avatar Chip (visible on tablet/desktop) */}
           <button
             onClick={() => onOpenSettings('profile')}
-            className="flex items-center gap-1.5 sm:gap-2 pl-1 sm:pl-1.5 pr-2 sm:pr-2.5 py-1 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 border border-black/10 dark:border-white/15 text-left transition"
+            className="hidden sm:flex items-center gap-1.5 sm:gap-2 pl-1.5 pr-2.5 py-1 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 border border-black/10 dark:border-white/15 text-left transition"
             title="Promoter Profile & Store Info"
           >
             <div className="w-6 h-6 rounded-full bg-black text-white dark:bg-white dark:text-black font-playfair font-bold text-xs flex items-center justify-center shrink-0">

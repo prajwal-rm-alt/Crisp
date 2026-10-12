@@ -41,27 +41,27 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-x-0 bottom-0 top-16 z-[90] flex items-start sm:items-center justify-center p-3 sm:p-5 md:p-6 bg-black/40 dark:bg-black/85 backdrop-blur-xl overflow-y-auto"
+      className="fixed inset-x-0 bottom-0 top-16 z-[90] flex items-start sm:items-center justify-center p-2.5 sm:p-5 md:p-6 bg-black/40 dark:bg-black/85 backdrop-blur-xl overflow-y-auto"
     >
-      <div className="w-full max-w-4xl rounded-3xl glass-panel border border-black/15 dark:border-white/20 shadow-2xl overflow-hidden my-auto max-h-[calc(100vh-5.5rem)] flex flex-col text-black dark:text-white transition-colors">
+      <div className="w-full max-w-4xl rounded-2xl sm:rounded-3xl glass-panel border border-black/15 dark:border-white/20 shadow-2xl overflow-hidden my-auto max-h-[calc(100vh-4.5rem)] sm:max-h-[calc(100vh-5.5rem)] flex flex-col text-black dark:text-white transition-colors">
         {/* Top Header bar */}
-        <div className="px-5 py-3.5 bg-black/5 dark:bg-white/5 border-b border-black/10 dark:border-white/10 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="font-playfair text-xs font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider bg-black text-white dark:bg-white dark:text-black">
+        <div className="px-3.5 sm:px-5 py-3 bg-black/5 dark:bg-white/5 border-b border-black/10 dark:border-white/10 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="font-playfair text-[11px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 rounded-full uppercase tracking-wider bg-black text-white dark:bg-white dark:text-black">
               {product.brand}
             </span>
-            <span className="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              Model #{product.modelNumber}
+            <span className="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 font-mono truncate max-w-[120px] xs:max-w-none">
+              #{product.modelNumber}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => onAskAIHowToPrepare(product)}
-              className="px-3.5 py-1.5 rounded-xl bg-black text-white dark:bg-white dark:text-black font-playfair font-bold text-xs flex items-center gap-1.5 hover:opacity-90 transition active:scale-95 shadow-md"
+              className="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-black text-white dark:bg-white dark:text-black font-playfair font-bold text-xs flex items-center gap-1.5 hover:opacity-90 transition active:scale-95 shadow-md"
             >
               <Bot className="w-3.5 h-3.5" />
-              <span>Ask AI Co-Pilot</span>
+              <span className="hidden xs:inline">Ask AI Co-Pilot</span>
             </button>
             <button
               onClick={onClose}
@@ -73,7 +73,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-7">
+        <div className="flex-1 overflow-y-auto p-3.5 sm:p-7 space-y-5 sm:space-y-7">
           {/* Top Hero: Images + Summary Split */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             {/* Left: Images */}
