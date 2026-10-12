@@ -1,0 +1,6 @@
+{
+  "name": "SALES Promoters Hub",
+  "description": "Executive Sales Promoter Hub with Glassmorphism iOS aesthetic, Dynamic Island AI assistant, appliance catalog for Bajaj & Morphy Richards, recipe intelligence, and PWA installation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

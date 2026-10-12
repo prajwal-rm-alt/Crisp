@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>SALES Promoters Hub</title>
+    <meta name="description" content="Executive Sales Promoter Hub with Glassmorphism iOS aesthetic, Dynamic Island AI assistant, appliance catalog for Bajaj & Morphy Richards, recipe intelligence, and PWA installation." />
+    <meta property="og:title" content="SALES Promoters Hub" />
+    <meta property="og:description" content="Executive Sales Promoter Hub with Glassmorphism iOS aesthetic, Dynamic Island AI assistant, appliance catalog for Bajaj & Morphy Richards, recipe intelligence, and PWA installation." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#090a0f" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="SALES" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600;1,700;1,800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      (function() {
+        try {
+          var t = localStorage.getItem('sales_hub_theme_v2') || 'dark';
+          var doc = document.documentElement;
+          doc.classList.remove('dark', 'light');
+          doc.classList.add(t);
+          doc.style.colorScheme = t;
+        } catch(e) {}
+      })();
+    </script>
+  </head>
+  <body class="antialiased selection:bg-neutral-800 selection:text-white dark:selection:bg-white dark:selection:text-black min-h-screen overflow-x-hidden transition-colors duration-300">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
