@@ -29,6 +29,18 @@
           doc.classList.add(t);
           doc.style.colorScheme = t;
         } catch(e) {}
+
+        // Suppress WebSocket closure errors in iframe environment where HMR is disabled
+        window.addEventListener('unhandledrejection', function(event) {
+          if (event.reason && (event.reason.message || '').indexOf('WebSocket') !== -1) {
+            event.preventDefault();
+          }
+        });
+        window.addEventListener('error', function(event) {
+          if ((event.message || '').indexOf('WebSocket') !== -1 || (event.filename || '').indexOf('@vite/client') !== -1) {
+            event.preventDefault();
+          }
+        });
       })();
     </script>
   </head>
