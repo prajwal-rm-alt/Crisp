@@ -3,15 +3,31 @@
   <head>
     <script>
       (function() {
-        // Suppress WebSocket closure errors in iframe environment where HMR is disabled
+        // Suppress benign Vite HMR WebSocket closure messages in dev environment where HMR is disabled
+        var origError = console.error;
+        console.error = function() {
+          var str = '';
+          for (var i = 0; i < arguments.length; i++) {
+            var arg = arguments[i];
+            str += ' ' + ((arg && (arg.stack || arg.message)) || String(arg));
+          }
+          if (str.indexOf('WebSocket') !== -1 || (str.indexOf('[vite]') !== -1 && str.indexOf('WebSocket') !== -1)) {
+            return;
+          }
+          return origError.apply(console, arguments);
+        };
+
         window.addEventListener('unhandledrejection', function(event) {
-          if (event.reason && (event.reason.message || '').indexOf('WebSocket') !== -1) {
+          var msg = (event.reason && (event.reason.message || event.reason.stack || String(event.reason))) || '';
+          if (msg.indexOf('WebSocket') !== -1) {
             event.preventDefault();
             event.stopImmediatePropagation();
           }
         }, true);
+
         window.addEventListener('error', function(event) {
-          if ((event.message || '').indexOf('WebSocket') !== -1 || (event.filename || '').indexOf('@vite/client') !== -1) {
+          var msg = (event.message || '') + ' ' + ((event.error && (event.error.message || event.error.stack)) || '') + ' ' + (event.filename || '');
+          if (msg.indexOf('WebSocket') !== -1 || msg.indexOf('@vite/client') !== -1) {
             event.preventDefault();
             event.stopImmediatePropagation();
           }
@@ -45,8 +61,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600;1,700;1,800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  </head>
-  <body class="antialiased selection:bg-neutral-800 selection:text-white dark:selection:bg-white dark:selection:text-black min-h-screen overflow-x-hidden transition-colors duration-300">
+  <body class="antialiased select-none min-h-screen overflow-x-hidden transition-colors duration-300">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

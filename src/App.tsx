@@ -267,7 +267,7 @@ export default function App() {
     <div
       className={`min-h-screen ${
         isDark ? 'bg-black text-white' : 'bg-white text-black'
-      } flex flex-col relative pt-16 pb-20 sm:pb-12 transition-colors duration-300 font-sans selection:bg-neutral-800 selection:text-white dark:selection:bg-white dark:selection:text-black`}
+      } flex flex-col relative pt-16 pb-20 sm:pb-12 transition-colors duration-300 font-sans select-none`}
     >
       {/* Main Top Navigation - Always Visible on Top of Everything */}
       <Navbar

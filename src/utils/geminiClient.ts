@@ -62,7 +62,7 @@ export async function testGeminiApiKey(apiKey: string): Promise<KeyTestResult> {
   // This bypasses any edge proxies (e.g. Vercel bom1:: NOT_FOUND 404)
   try {
     const directRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${trimmed}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${trimmed}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -154,7 +154,7 @@ Question: ${message}
 Provide clear temperature (°C), timer (mins), preheating, steps, chef pro-tip, and recommended YouTube search query for customer demonstration. Keep it practical for in-store retail floor assistance.`;
 
       const directRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${trimmedKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${trimmedKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
