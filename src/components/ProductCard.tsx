@@ -1,18 +1,22 @@
-import React from 'react';
-import { ChefHat, Zap, Ruler, ArrowRight, Bot } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChefHat, Zap, Ruler, ArrowRight, Bot, Trash2 } from 'lucide-react';
 import { Product } from '../types';
 
 interface ProductCardProps {
   product: Product;
   onSelect: (product: Product) => void;
   onOpenAIForProduct: (product: Product) => void;
+  onDeleteProduct?: (productId: string) => void;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onSelect,
   onOpenAIForProduct,
+  onDeleteProduct,
 }) => {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   const discountPercent = Math.round(
     ((product.mrp - product.sellingPrice) / product.mrp) * 100
   );
@@ -22,6 +26,47 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       onClick={() => onSelect(product)}
       className="glass-card rounded-3xl overflow-hidden cursor-pointer flex flex-col group relative transition-all duration-300"
     >
+      {/* Inline Delete Confirmation Overlay (No window.confirm, 100% iframe reliable) */}
+      {showDeleteConfirm && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="absolute inset-0 bg-black/92 dark:bg-black/95 backdrop-blur-md z-30 flex flex-col items-center justify-center p-4 text-center text-white space-y-3 animate-in fade-in duration-150"
+        >
+          <div className="w-10 h-10 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center">
+            <Trash2 className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="font-playfair text-sm font-bold">Remove Appliance?</h4>
+            <p className="text-[11px] text-neutral-300 max-w-[240px] mt-1 font-serif">
+              "{product.brand} {product.name}" will be deleted from your store catalog.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDeleteConfirm(false);
+              }}
+              className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-playfair font-medium transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDeleteConfirm(false);
+                onDeleteProduct?.(product.id);
+              }}
+              className="px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-playfair font-bold shadow-md transition"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Image container with subtle scrim */}
       <div className="relative aspect-[4/3] w-full bg-neutral-100 dark:bg-neutral-900 overflow-hidden">
         <img
@@ -46,12 +91,28 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </span>
         </div>
 
-        {/* Discount Badge */}
-        {discountPercent > 0 && (
-          <div className="absolute top-3 right-3 bg-white/90 dark:bg-black/90 text-black dark:text-white font-extrabold text-[10px] px-2.5 py-0.5 rounded-full backdrop-blur-md shadow-sm border border-black/10 dark:border-white/20">
-            {discountPercent}% OFF
-          </div>
-        )}
+        {/* Top Right Badges: Discount & Quick Delete Trigger */}
+        <div className="absolute top-3 right-3 flex items-center gap-1.5">
+          {discountPercent > 0 && (
+            <span className="bg-white/90 dark:bg-black/90 text-black dark:text-white font-extrabold text-[10px] px-2.5 py-0.5 rounded-full backdrop-blur-md shadow-sm border border-black/10 dark:border-white/20">
+              {discountPercent}% OFF
+            </span>
+          )}
+          {onDeleteProduct && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDeleteConfirm(true);
+              }}
+              title="Delete this appliance from catalog"
+              aria-label="Delete appliance"
+              className="p-1 rounded-full bg-black/75 hover:bg-red-600 text-white/80 hover:text-white backdrop-blur-md transition shadow-sm active:scale-90"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
 
         {/* Recipe image preview strip at bottom of photo */}
         {product.recipes && product.recipes.length > 0 && (
@@ -127,6 +188,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           <div className="flex items-center gap-1.5">
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onOpenAIForProduct(product);
@@ -137,6 +199,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               <Bot className="w-4 h-4" />
             </button>
             <button
+              type="button"
               onClick={() => onSelect(product)}
               className="px-3 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black text-xs font-playfair font-semibold flex items-center gap-1 transition shadow-sm hover:opacity-90 active:scale-95"
             >

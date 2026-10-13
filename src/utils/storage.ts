@@ -3,7 +3,8 @@ import { DEFAULT_PRODUCTS } from '../data/defaultCatalog';
 
 const STORAGE_KEYS = {
   PROFILE: 'sales_hub_profile_v2',
-  CATALOG: 'sales_hub_catalog_v3',
+  CATALOG: 'sales_hub_catalog_v5',
+  DELETED_PRODUCT_IDS: 'sales_hub_deleted_ids_v1',
   THEME: 'sales_hub_theme_v2',
   API_KEY: 'sales_hub_custom_gemini_key_v2',
 };
@@ -39,22 +40,69 @@ export function saveProfile(profile: PromoterProfile): void {
   }
 }
 
-// Catalog persistence
+// Track permanently deleted product IDs so they never resurrect on reload
+export function getDeletedProductIds(): string[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.DELETED_PRODUCT_IDS);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {
+    console.error('Error loading deleted product IDs:', e);
+  }
+  return [];
+}
+
+export function recordDeletedProductId(id: string): void {
+  try {
+    const current = getDeletedProductIds();
+    if (!current.includes(id)) {
+      localStorage.setItem(STORAGE_KEYS.DELETED_PRODUCT_IDS, JSON.stringify([...current, id]));
+    }
+  } catch (e) {
+    console.error('Error recording deleted product ID:', e);
+  }
+}
+
+export function clearDeletedProductIds(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.DELETED_PRODUCT_IDS);
+  } catch (e) {
+    console.error('Error clearing deleted product IDs:', e);
+  }
+}
+
+// Catalog persistence: Single source of truth that preserves user deletions & additions permanently
 export function loadCatalog(): Product[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.CATALOG);
-    if (raw) {
+    if (raw !== null) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      // If user has saved a catalog (even if empty or edited), ALWAYS respect it!
+      if (Array.isArray(parsed)) {
         return parsed;
+      }
+    }
+
+    // Check fallback from previous storage keys if migrating
+    const rawV3 = localStorage.getItem('sales_hub_catalog_v3');
+    if (rawV3) {
+      const parsedV3 = JSON.parse(rawV3);
+      if (Array.isArray(parsedV3) && parsedV3.length > 0) {
+        saveCatalog(parsedV3);
+        return parsedV3;
       }
     }
   } catch (e) {
     console.error('Error loading catalog:', e);
   }
-  // Initialize with default
-  saveCatalog(DEFAULT_PRODUCTS);
-  return DEFAULT_PRODUCTS;
+
+  // First time initialization: Seed with default products excluding any previously deleted IDs
+  const deletedIds = getDeletedProductIds();
+  const initial = DEFAULT_PRODUCTS.filter((p) => !deletedIds.includes(p.id));
+  saveCatalog(initial);
+  return initial;
 }
 
 export function saveCatalog(catalog: Product[]): void {
@@ -67,6 +115,12 @@ export function saveCatalog(catalog: Product[]): void {
 
 export function addProductToCatalog(product: Product): Product[] {
   const current = loadCatalog();
+  // If product was previously marked deleted, unmark it
+  try {
+    const deletedIds = getDeletedProductIds().filter((id) => id !== product.id);
+    localStorage.setItem(STORAGE_KEYS.DELETED_PRODUCT_IDS, JSON.stringify(deletedIds));
+  } catch {}
+
   const updated = [product, ...current];
   saveCatalog(updated);
   return updated;
@@ -80,13 +134,28 @@ export function updateProductInCatalog(product: Product): Product[] {
 }
 
 export function deleteProductFromCatalog(productId: string): Product[] {
+  recordDeletedProductId(productId);
   const current = loadCatalog();
   const updated = current.filter((p) => p.id !== productId);
   saveCatalog(updated);
   return updated;
 }
 
+export function deleteRecipeFromProduct(productId: string, recipeId: string): Product[] {
+  const current = loadCatalog();
+  const updated = current.map((prod) => {
+    if (prod.id !== productId) return prod;
+    return {
+      ...prod,
+      recipes: (prod.recipes || []).filter((r) => r.id !== recipeId),
+    };
+  });
+  saveCatalog(updated);
+  return updated;
+}
+
 export function resetCatalogToDefault(): Product[] {
+  clearDeletedProductIds();
   saveCatalog(DEFAULT_PRODUCTS);
   return DEFAULT_PRODUCTS;
 }
@@ -113,23 +182,21 @@ export function saveTheme(theme: AppTheme): void {
   }
 }
 
-// Default Google AI Studio API Key from user
-export const DEFAULT_API_KEY = 'AIzaSyDxrDQPUZWfspw0mlBC-fBbgSil1n40PdU';
-
 // Custom Gemini API Key persistence
 export function loadCustomApiKey(): string {
   try {
     const stored = localStorage.getItem(STORAGE_KEYS.API_KEY);
-    return stored && stored.trim() ? stored.trim() : DEFAULT_API_KEY;
+    return stored ? stored.trim() : '';
   } catch (e) {
-    return DEFAULT_API_KEY;
+    return '';
   }
 }
 
 export function saveCustomApiKey(key: string): void {
   try {
-    if (key.trim()) {
-      localStorage.setItem(STORAGE_KEYS.API_KEY, key.trim());
+    const trimmed = (key || '').trim();
+    if (trimmed) {
+      localStorage.setItem(STORAGE_KEYS.API_KEY, trimmed);
     } else {
       localStorage.removeItem(STORAGE_KEYS.API_KEY);
     }
@@ -154,7 +221,10 @@ export function importDataJSON(jsonString: string): boolean {
   try {
     const data = JSON.parse(jsonString);
     if (data.profile) saveProfile(data.profile);
-    if (data.catalog && Array.isArray(data.catalog)) saveCatalog(data.catalog);
+    if (data.catalog && Array.isArray(data.catalog)) {
+      clearDeletedProductIds();
+      saveCatalog(data.catalog);
+    }
     if (data.theme) saveTheme(data.theme);
     return true;
   } catch (e) {

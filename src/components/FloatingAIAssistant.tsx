@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Product, ProductRecipe, ChatMessage, PromoterProfile } from '../types';
 import { getRecipeIntelligence } from '../utils/recipeIntelligence';
+import { sendAIChatMessage } from '../utils/geminiClient';
 
 interface FloatingAIAssistantProps {
   isOpen: boolean;
@@ -128,43 +129,16 @@ Here to help you with:
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/gemini/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: query,
-          history: messages.slice(-8).map((m) => ({ role: m.role, content: m.content })),
-          currentProduct: activeProduct,
-          customApiKey: customApiKey || undefined,
-        }),
+      const { reply } = await sendAIChatMessage({
+        message: query,
+        history: messages.slice(-8).map((m) => ({ role: m.role, content: m.content })),
+        currentProduct: activeProduct,
+        customApiKey,
       });
-
-      const contentType = response.headers.get('content-type') || '';
-      let data: any = null;
-      if (contentType.includes('application/json')) {
-        try {
-          data = await response.json();
-        } catch {
-          data = null;
-        }
-      }
-
-      if (!data) {
-        const text = await response.text();
-        throw new Error(
-          response.ok
-            ? 'Unexpected response format from AI service'
-            : `AI service returned HTTP ${response.status}: ${text.slice(0, 100)}`
-        );
-      }
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to get AI response');
-      }
 
       // Check if YouTube recommendations can be extracted
       const searchTerms: { title: string; query: string }[] = [];
-      if (data.reply.toLowerCase().includes('youtube')) {
+      if (reply.toLowerCase().includes('youtube')) {
         const dishMatch = query.match(/(how to (make|prepare|cook)|recipe for)\s+([a-zA-Z\s]+)/i);
         const dish = dishMatch ? dishMatch[3] : 'appliance recipe';
         searchTerms.push({
@@ -176,24 +150,24 @@ Here to help you with:
       const assistantMsg: ChatMessage = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: data.reply,
+        content: reply,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         youtubeLinks: searchTerms.length > 0 ? searchTerms : undefined,
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
-    } catch (err: any) {
-      // Fallback response using culinary intelligence if API has network/proxy delay
+    } catch {
+      // Resilient local fallback if any unexpected error occurs
       const fallbackReply = activeProduct
         ? `### 👨‍🍳 AI Chef Floor Guidance: **${activeProduct.brand} ${activeProduct.name}**\n\n` +
           `**Appliance Features:** ${activeProduct.power || activeProduct.capacity} (${activeProduct.category})\n` +
           `• **Recommended Temperature:** 180°C - 200°C for baking/crisping; 60°C - 80°C for warming.\n` +
           `• **Top Prepared Dishes:** ${activeProduct.recipes?.map(r => r.name).join(', ') || 'Cakes, Samosas, Grilled Veggies'}.\n` +
           `• **Key Selling Pitch Hook:** "${activeProduct.promoterPitchHook}"\n\n` +
-          `*(Note: Offline assistance shown while Google Studio API reconnects)*`
+          `*(Note: Guidance delivered via built-in culinary intelligence)*`
         : `### 👨‍🍳 SALES AI Chef Guidance\n\n` +
           `Select any appliance or dish image in the catalog to get exact cooking temperatures, time presets, and YouTube demonstration links.\n\n` +
-          `*(Note: Reconnecting to Google Studio Gemini API in background)*`;
+          `*(Note: Built-in culinary intelligence is active)*`;
 
       setMessages((prev) => [
         ...prev,

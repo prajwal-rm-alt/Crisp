@@ -46,6 +46,7 @@ export interface Product {
   additionalImages?: string[];
   recipes: ProductRecipe[];
   officialWebsiteUrl?: string;
+  officialWebsiteQuery?: string;
   youtubeSearchQuery?: string;
   inStock: boolean;
   stockCount: number;

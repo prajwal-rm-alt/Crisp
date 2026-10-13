@@ -1,6 +1,31 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script>
+      (function() {
+        // Suppress WebSocket closure errors in iframe environment where HMR is disabled
+        window.addEventListener('unhandledrejection', function(event) {
+          if (event.reason && (event.reason.message || '').indexOf('WebSocket') !== -1) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          }
+        }, true);
+        window.addEventListener('error', function(event) {
+          if ((event.message || '').indexOf('WebSocket') !== -1 || (event.filename || '').indexOf('@vite/client') !== -1) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          }
+        }, true);
+
+        try {
+          var t = localStorage.getItem('sales_hub_theme_v2') || localStorage.getItem('sales_hub_theme') || 'dark';
+          var doc = document.documentElement;
+          doc.classList.remove('dark', 'light');
+          doc.classList.add(t);
+          doc.style.colorScheme = t;
+        } catch(e) {}
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>SALES Promoters Hub</title>
@@ -20,29 +45,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600;1,700;1,800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-      (function() {
-        try {
-          var t = localStorage.getItem('sales_hub_theme_v2') || localStorage.getItem('sales_hub_theme') || 'dark';
-          var doc = document.documentElement;
-          doc.classList.remove('dark', 'light');
-          doc.classList.add(t);
-          doc.style.colorScheme = t;
-        } catch(e) {}
-
-        // Suppress WebSocket closure errors in iframe environment where HMR is disabled
-        window.addEventListener('unhandledrejection', function(event) {
-          if (event.reason && (event.reason.message || '').indexOf('WebSocket') !== -1) {
-            event.preventDefault();
-          }
-        });
-        window.addEventListener('error', function(event) {
-          if ((event.message || '').indexOf('WebSocket') !== -1 || (event.filename || '').indexOf('@vite/client') !== -1) {
-            event.preventDefault();
-          }
-        });
-      })();
-    </script>
   </head>
   <body class="antialiased selection:bg-neutral-800 selection:text-white dark:selection:bg-white dark:selection:text-black min-h-screen overflow-x-hidden transition-colors duration-300">
     <div id="root"></div>

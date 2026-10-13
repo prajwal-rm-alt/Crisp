@@ -9,7 +9,10 @@ import {
   SlidersHorizontal,
   Sparkles,
   ArrowRight,
-  Camera
+  Camera,
+  Trash2,
+  CheckCircle2,
+  RotateCw
 } from 'lucide-react';
 import { 
   Product, 
@@ -28,7 +31,9 @@ import {
   saveTheme, 
   loadCustomApiKey, 
   saveCustomApiKey,
-  resetCatalogToDefault
+  resetCatalogToDefault,
+  deleteProductFromCatalog,
+  deleteRecipeFromProduct
 } from './utils/storage';
 import { usePWAInstall } from './hooks/usePWAInstall';
 import { Navbar } from './components/Navbar';
@@ -77,6 +82,15 @@ export default function App() {
   const [settingsInitialTab, setSettingsInitialTab] = useState<'profile' | 'images' | 'catalog' | 'ai-generator' | 'ai-key' | 'appearance'>('profile');
   const [settingsInitialProductId, setSettingsInitialProductId] = useState<string | undefined>(undefined);
   const [showIOSInstallGuide, setShowIOSInstallGuide] = useState(false);
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage((prev) => (prev === msg ? null : prev));
+    }, 3200);
+  };
 
   const handleOpenSettings = (
     tab: 'profile' | 'images' | 'catalog' | 'ai-generator' | 'ai-key' | 'appearance' = 'profile',
@@ -131,10 +145,30 @@ export default function App() {
     saveCatalog(newCatalog);
   };
 
+  // Delete product permanently (survives page refresh)
+  const handleDeleteProduct = (productId: string) => {
+    const updated = deleteProductFromCatalog(productId);
+    setCatalog(updated);
+    if (selectedProduct?.id === productId) setSelectedProduct(null);
+    if (activeProductForAI?.id === productId) setActiveProductForAI(updated[0] || null);
+    showToast('Appliance permanently removed from catalog.');
+  };
+
+  // Delete specific prepared dish recipe permanently
+  const handleDeleteRecipe = (productId: string, recipeId: string) => {
+    const updated = deleteRecipeFromProduct(productId, recipeId);
+    setCatalog(updated);
+    if (selectedProduct?.id === productId) {
+      const match = updated.find((p) => p.id === productId);
+      if (match) setSelectedProduct(match);
+    }
+    showToast('Dish recipe removed from catalog.');
+  };
+
   const handleResetCatalog = () => {
     const fresh = resetCatalogToDefault();
     setCatalog(fresh);
-    alert('Catalog reset to factory specifications.');
+    showToast('Catalog reset to factory specifications.');
   };
 
   const handleSaveCustomApiKey = (key: string) => {
@@ -412,6 +446,21 @@ export default function App() {
                   </select>
                 </div>
 
+                {/* Delete Mode Toggle to easily purge unwanted dishes */}
+                <button
+                  type="button"
+                  onClick={() => setIsDeleteMode((prev) => !prev)}
+                  className={`px-2.5 py-1.5 text-[11px] font-playfair font-semibold rounded-xl border transition flex items-center gap-1.5 ${
+                    isDeleteMode
+                      ? 'bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30 shadow-sm'
+                      : 'bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-neutral-600 dark:text-neutral-300 border-black/10 dark:border-white/10'
+                  }`}
+                  title="Toggle dish delete buttons"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  <span>{isDeleteMode ? 'Done Deleting' : 'Delete Dishes'}</span>
+                </button>
+
                 {/* Reset Filters button if any filter is active */}
                 {(selectedCategory !== 'All' || selectedModelId !== 'All' || selectedBrand !== 'All' || searchQuery) && (
                   <button
@@ -470,6 +519,22 @@ export default function App() {
                           'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80';
                       }}
                     />
+
+                    {/* Delete dish button (Direct deletion of useless dishes) */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteRecipe(product.id, recipe.id);
+                      }}
+                      title={`Permanently delete dish "${recipe.name}"`}
+                      aria-label="Delete dish"
+                      className={`absolute top-2 right-2 p-1.5 rounded-full bg-black/80 hover:bg-red-600 text-white/90 hover:text-white backdrop-blur-md transition shadow-md active:scale-90 z-20 ${
+                        isDeleteMode ? 'opacity-100 ring-2 ring-red-500 scale-110' : 'opacity-0 group-hover:opacity-100'
+                      }`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
 
                     {/* Clean bottom gradient badge with dish name & AI Chef prompt */}
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-2 sm:p-2.5 flex flex-col justify-end pointer-events-none transition-opacity duration-200">
@@ -535,6 +600,7 @@ export default function App() {
                       setActiveProductForAI(p);
                     }}
                     onOpenAIForProduct={(p) => handleOpenAIForProduct(p)}
+                    onDeleteProduct={handleDeleteProduct}
                   />
                 ))}
               </div>
@@ -621,6 +687,8 @@ export default function App() {
             setSelectedProduct(null);
             handleOpenRecipeInAIChef(p, r);
           }}
+          onDeleteProduct={handleDeleteProduct}
+          onDeleteRecipe={handleDeleteRecipe}
         />
       )}
 
@@ -683,6 +751,14 @@ export default function App() {
         forceShowIOSGuide={showIOSInstallGuide}
         onCloseGuide={() => setShowIOSInstallGuide(false)}
       />
+
+      {/* In-App Toast Confirmation Banner (Guaranteed feedback in all environments) */}
+      {toastMessage && (
+        <div className="fixed bottom-20 sm:bottom-8 left-1/2 -translate-x-1/2 z-[10000] px-4 py-2.5 rounded-2xl bg-black/92 dark:bg-white/95 text-white dark:text-black font-playfair text-xs font-semibold shadow-2xl flex items-center gap-2 border border-white/20 dark:border-black/20 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 dark:text-emerald-600 shrink-0" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Product, ProductRecipe } from '../types';
 import { getRecipeIntelligence, DetailedRecipeGuide } from '../utils/recipeIntelligence';
+import { sendAIChatMessage } from '../utils/geminiClient';
 
 interface AIRecipeModalProps {
   product: Product;
@@ -57,28 +58,14 @@ ${guide.youtubeUrl}`;
   const handleAskAIForVariations = async () => {
     setIsGeneratingMore(true);
     try {
-      const response = await fetch('/api/gemini/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: `Provide 2 quick secret chef hacks or variations for making ${recipe.name} in the ${product.brand} ${product.name}. Keep it concise in 2 bullet points.`,
-          currentProduct: product,
-          customApiKey: customApiKey || undefined,
-        }),
+      const { reply } = await sendAIChatMessage({
+        message: `Provide 2 quick secret chef hacks or variations for making ${recipe.name} in the ${product.brand} ${product.name}. Keep it concise in 2 bullet points.`,
+        currentProduct: product,
+        customApiKey,
       });
 
-      const contentType = response.headers.get('content-type') || '';
-      let data: any = null;
-      if (contentType.includes('application/json')) {
-        try {
-          data = await response.json();
-        } catch {
-          data = null;
-        }
-      }
-
-      if (response.ok && data?.reply) {
-        setCustomTip(data.reply);
+      if (reply) {
+        setCustomTip(reply);
       } else {
         setCustomTip('Tip: Spray light cooking oil and avoid overcrowding for maximum crispiness.');
       }

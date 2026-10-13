@@ -37,6 +37,7 @@ export const ImageEditorModalTab: React.FC<ImageEditorModalTabProps> = ({
   );
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [presetCategory, setPresetCategory] = useState<'all' | 'dish' | 'appliance'>('all');
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   // Keep in sync if catalog changes from outside
   useEffect(() => {
@@ -162,13 +163,7 @@ export const ImageEditorModalTab: React.FC<ImageEditorModalTabProps> = ({
 
           <button
             type="button"
-            onClick={() => {
-              if (window.confirm('Reset all catalog images to default verified high-res library?')) {
-                onResetCatalog();
-                setSavedSuccess(true);
-                setTimeout(() => setSavedSuccess(false), 2500);
-              }
-            }}
+            onClick={() => setShowResetConfirm((prev) => !prev)}
             className="p-2 text-neutral-500 hover:text-black dark:hover:text-white rounded-xl hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 transition"
             title="Reset all images to default verified library"
           >
@@ -176,6 +171,35 @@ export const ImageEditorModalTab: React.FC<ImageEditorModalTabProps> = ({
           </button>
         </div>
       </div>
+
+      {showResetConfirm && (
+        <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/25 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs animate-in fade-in duration-150">
+          <span className="text-red-700 dark:text-red-300 font-medium">
+            Reset all appliance & dish images back to factory library?
+          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowResetConfirm(false)}
+              className="px-3 py-1 rounded-xl bg-black/10 dark:bg-white/10 text-xs font-semibold"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowResetConfirm(false);
+                onResetCatalog();
+                setSavedSuccess(true);
+                setTimeout(() => setSavedSuccess(false), 2500);
+              }}
+              className="px-3.5 py-1 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md transition"
+            >
+              Confirm Reset
+            </button>
+          </div>
+        </div>
+      )}
 
       {savedSuccess && (
         <div className="p-3 rounded-xl bg-black/5 dark:bg-white/10 border border-black/20 dark:border-white/20 text-xs font-playfair font-semibold flex items-center gap-2 text-black dark:text-white transition">

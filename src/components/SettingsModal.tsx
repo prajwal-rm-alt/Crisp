@@ -21,11 +21,15 @@ import {
   ChefHat,
   Moon,
   Sun,
-  Camera
+  Camera,
+  ExternalLink,
+  RotateCw
 } from 'lucide-react';
 import { PromoterProfile, Product, AppTheme } from '../types';
 import { exportDataJSON, importDataJSON } from '../utils/storage';
 import { ImageEditorModalTab } from './ImageEditorModalTab';
+import { testGeminiApiKey } from '../utils/geminiClient';
+import { LongHoldResetButton } from './LongHoldResetButton';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -65,13 +69,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [selectedProductToEdit, setSelectedProductToEdit] = useState<string | undefined>(initialProductToEdit);
   const [profileForm, setProfileForm] = useState<PromoterProfile>({ ...profile });
   const [profileSaved, setProfileSaved] = useState(false);
-  const [apiKeyInput, setApiKeyInput] = useState(customApiKey || '');
+  const [apiKeyInput, setApiKeyInput] = useState(
+    customApiKey && customApiKey !== 'AIzaSyDxrDQPUZWfspw0mlBC-fBbgSil1n40PdU' ? customApiKey : ''
+  );
   const [isTestingKey, setIsTestingKey] = useState(false);
   const [keyTestResult, setKeyTestResult] = useState<{
     success?: boolean;
     message?: string;
     latencyMs?: number;
     error?: string;
+    isLeaked?: boolean;
+    isQuota?: boolean;
   } | null>(null);
   const [apiKeySaved, setApiKeySaved] = useState(false);
   const [genBrand, setGenBrand] = useState('Morphy Richards');
@@ -80,6 +88,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedProduct, setGeneratedProduct] = useState<Partial<Product> | null>(null);
   const [genSuccessMsg, setGenSuccessMsg] = useState('');
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
   // 2. All useEffect hooks placed after useState hooks
   useEffect(() => {
@@ -92,7 +101,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   }, [initialTab, initialProductToEdit]);
 
   useEffect(() => {
-    if (customApiKey && customApiKey !== apiKeyInput) {
+    if (customApiKey && customApiKey !== 'AIzaSyDxrDQPUZWfspw0mlBC-fBbgSil1n40PdU' && customApiKey !== apiKeyInput) {
       setApiKeyInput(customApiKey);
     }
   }, [customApiKey]);
@@ -115,52 +124,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setTimeout(() => setProfileSaved(false), 2500);
   };
 
-  // Handle API Key Test with safe content-type parsing
+  // Handle API Key Test with resilient multi-tier verification (bypasses 404 edge errors)
   const handleTestApiKey = async () => {
     setIsTestingKey(true);
     setKeyTestResult(null);
     try {
-      const res = await fetch('/api/gemini/test-key', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apiKey: apiKeyInput.trim() }),
-      });
-
-      const contentType = res.headers.get('content-type') || '';
-      let data: any = null;
-      if (contentType.includes('application/json')) {
-        try {
-          data = await res.json();
-        } catch {
-          data = null;
-        }
-      }
-
-      if (!data) {
-        const text = await res.text();
-        throw new Error(
-          res.ok
-            ? 'Unexpected server response format'
-            : `Server returned HTTP ${res.status}: ${text.slice(0, 100)}`
-        );
-      }
-
-      if (res.ok && data.success) {
-        setKeyTestResult({
-          success: true,
-          message: data.message || 'Connected to Google AI Studio Gemini API',
-          latencyMs: data.latencyMs,
-        });
-      } else {
-        setKeyTestResult({
-          success: false,
-          error: data.error || 'API Key validation failed.',
-        });
-      }
+      const result = await testGeminiApiKey(apiKeyInput.trim());
+      setKeyTestResult(result);
     } catch (err: any) {
       setKeyTestResult({
         success: false,
-        error: err.message || 'Network error while testing API key.',
+        error: err?.message || 'Network error testing API key. Built-in culinary intelligence is active.',
       });
     } finally {
       setIsTestingKey(false);
@@ -277,10 +251,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   const handleDeleteProduct = (id: string) => {
-    if (confirm('Are you sure you want to remove this appliance from the store catalog?')) {
-      const updated = catalog.filter((p) => p.id !== id);
-      onUpdateCatalog(updated);
-    }
+    const updated = catalog.filter((p) => p.id !== id);
+    onUpdateCatalog(updated);
+    setProductToDelete(null);
   };
 
   const handleExportData = () => {
@@ -744,16 +717,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {/* Test Result Message */}
                 {keyTestResult && (
                   <div
-                    className={`p-3.5 rounded-xl border text-xs font-medium ${
+                    className={`p-3.5 rounded-xl border text-xs font-medium space-y-2 ${
                       keyTestResult.success
                         ? 'bg-black/5 dark:bg-white/10 border-black/15 dark:border-white/20 text-black dark:text-white'
-                        : 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400'
+                        : 'bg-red-500/10 border-red-500/25 text-red-700 dark:text-red-300'
                     }`}
                   >
                     {keyTestResult.success ? (
                       <div className="flex items-center justify-between">
                         <span className="flex items-center gap-1.5 font-playfair font-semibold">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                           <span>Gemini API connection test verified! Model responding.</span>
                         </span>
                         {keyTestResult.latencyMs && (
@@ -763,9 +736,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         )}
                       </div>
                     ) : (
-                      <div className="flex items-start gap-1.5">
-                        <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                        <span>{keyTestResult.error}</span>
+                      <div className="space-y-2">
+                        <div className="flex items-start gap-1.5">
+                          <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                          <span className="leading-relaxed">{keyTestResult.error}</span>
+                        </div>
+                        {(keyTestResult.isLeaked || keyTestResult.isQuota) && (
+                          <div className="pt-1 border-t border-red-500/20 flex flex-wrap items-center justify-between gap-2">
+                            <span className="text-[11px] opacity-90">
+                              Generate a fresh key in your Google account:
+                            </span>
+                            <a
+                              href="https://aistudio.google.com/apikey"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-black text-white dark:bg-white dark:text-black font-semibold text-[11px] hover:opacity-90 transition"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              <span>Open Google AI Studio ↗</span>
+                            </a>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -776,77 +767,130 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* TAB 4: MANAGE CATALOG */}
           {activeTab === 'catalog' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
+            <div className="space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-black/10 dark:border-white/10">
                 <div>
-                  <h3 className="font-playfair text-sm font-bold">Store Appliances Catalog</h3>
+                  <h3 className="font-playfair text-sm sm:text-base font-bold">Store Appliances Catalog</h3>
                   <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    {catalog.length} appliances currently active for promotion.
+                    {catalog.length} appliances currently active. Custom additions and deletions remain permanently saved.
                   </p>
                 </div>
+
+                {/* Refresh Entire Webpage Quick Button */}
                 <button
-                  onClick={onResetCatalog}
-                  className="px-3 py-1.5 text-xs text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white rounded-lg hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 transition flex items-center gap-1 font-playfair font-medium"
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="px-3 py-1.5 text-xs text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white rounded-xl hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 transition flex items-center gap-1.5 font-playfair font-medium shrink-0 self-start sm:self-auto"
+                  title="Reload web page (All your data and deletions remain intact)"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Reset to Factory Catalog</span>
+                  <RotateCw className="w-3.5 h-3.5" />
+                  <span>Refresh Web Page</span>
                 </button>
               </div>
 
+              {/* Safety Long-Hold Reset Bar */}
+              <div className="p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/10 dark:border-white/10 space-y-2">
+                <div className="text-[11px] text-neutral-500 dark:text-neutral-400 font-serif">
+                  Need to restore factory default catalog? Long press below for 3 seconds.
+                </div>
+                <LongHoldResetButton onReset={onResetCatalog} label="Reset to Factory Specifications" />
+              </div>
+
+              {/* Products List */}
               <div className="space-y-2.5">
-                {catalog.map((prod) => (
-                  <div
-                    key={prod.id}
-                    className="p-3.5 rounded-2xl bg-black/[0.03] dark:bg-white/[0.03] border border-black/10 dark:border-white/10 flex items-center justify-between gap-3 text-xs"
-                  >
-                    <div className="flex items-center gap-3 truncate">
-                      <img
-                        src={prod.imageUrl}
-                        alt={prod.name}
-                        className="w-12 h-12 rounded-xl object-cover shrink-0 bg-neutral-200 dark:bg-neutral-800 border border-black/10 dark:border-white/10"
-                      />
-                      <div className="truncate">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-playfair px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-black text-white dark:bg-white dark:text-black">
-                            {prod.brand}
-                          </span>
-                          <span className="text-neutral-500 dark:text-neutral-400 font-mono text-[11px]">
-                            {prod.category}
-                          </span>
+                {catalog.length === 0 ? (
+                  <div className="p-8 rounded-2xl text-center glass-panel border border-black/10 dark:border-white/10 space-y-2">
+                    <p className="text-xs text-neutral-500 font-serif">Your catalog is currently empty.</p>
+                    <button
+                      type="button"
+                      onClick={onResetCatalog}
+                      className="px-4 py-2 bg-black text-white dark:bg-white dark:text-black rounded-xl text-xs font-playfair font-bold"
+                    >
+                      Restore Factory Catalog
+                    </button>
+                  </div>
+                ) : (
+                  catalog.map((prod) => (
+                    <div
+                      key={prod.id}
+                      className="p-3.5 rounded-2xl bg-black/[0.03] dark:bg-white/[0.03] border border-black/10 dark:border-white/10 space-y-2"
+                    >
+                      <div className="flex items-center justify-between gap-3 text-xs">
+                        <div className="flex items-center gap-3 truncate">
+                          <img
+                            src={prod.imageUrl}
+                            alt={prod.name}
+                            className="w-12 h-12 rounded-xl object-cover shrink-0 bg-neutral-200 dark:bg-neutral-800 border border-black/10 dark:border-white/10"
+                          />
+                          <div className="truncate">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-playfair px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-black text-white dark:bg-white dark:text-black">
+                                {prod.brand}
+                              </span>
+                              <span className="text-neutral-500 dark:text-neutral-400 font-mono text-[11px]">
+                                {prod.category}
+                              </span>
+                            </div>
+                            <h4 className="font-playfair font-bold truncate text-sm mt-0.5">
+                              {prod.name}
+                            </h4>
+                            <div className="text-neutral-500 dark:text-neutral-400 text-[11px] font-mono mt-0.5">
+                              ₹{prod.sellingPrice.toLocaleString('en-IN')} (MRP: ₹{prod.mrp.toLocaleString('en-IN')}) · {prod.recipes?.length || 0} Recipes
+                            </div>
+                          </div>
                         </div>
-                        <h4 className="font-playfair font-bold truncate text-sm mt-0.5">
-                          {prod.name}
-                        </h4>
-                        <div className="text-neutral-500 dark:text-neutral-400 text-[11px] font-mono mt-0.5">
-                          ₹{prod.sellingPrice.toLocaleString('en-IN')} (MRP: ₹{prod.mrp.toLocaleString('en-IN')}) · {prod.recipes?.length || 0} Recipes
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedProductToEdit(prod.id);
+                              setActiveTab('images');
+                            }}
+                            className="px-2.5 py-1.5 text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 rounded-lg transition flex items-center gap-1.5 border border-black/10 dark:border-white/10 font-playfair text-[11px]"
+                            title="Edit Images for this product"
+                          >
+                            <Camera className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Edit Images</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setProductToDelete(prod.id)}
+                            className="p-1.5 text-neutral-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition"
+                            title="Delete product permanently"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedProductToEdit(prod.id);
-                          setActiveTab('images');
-                        }}
-                        className="px-2.5 py-1.5 text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 rounded-lg transition flex items-center gap-1.5 border border-black/10 dark:border-white/10 font-playfair text-[11px]"
-                        title="Edit Images for this product"
-                      >
-                        <Camera className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Edit Images</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteProduct(prod.id)}
-                        className="p-1.5 text-neutral-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition"
-                        title="Delete product"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {/* In-App Confirmation Banner (Works 100% reliably in all iframe environments) */}
+                      {productToDelete === prod.id && (
+                        <div className="p-2.5 rounded-xl bg-red-500/15 border border-red-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs animate-in fade-in duration-150">
+                          <span className="text-red-700 dark:text-red-300 font-medium">
+                            Permanently remove "{prod.name}" from catalog?
+                          </span>
+                          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                            <button
+                              type="button"
+                              onClick={() => setProductToDelete(null)}
+                              className="px-3 py-1 rounded-lg bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-xs font-playfair font-semibold"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteProduct(prod.id)}
+                              className="px-3.5 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-playfair font-bold shadow-sm"
+                            >
+                              Confirm Delete
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           )}

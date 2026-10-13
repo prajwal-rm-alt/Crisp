@@ -5,7 +5,8 @@ import {
   Sun, 
   Download, 
   Bot, 
-  Store
+  Store,
+  RotateCw
 } from 'lucide-react';
 import { PromoterProfile, AppTheme, Product } from '../types';
 import { DynamicIsland } from './DynamicIsland';
@@ -135,6 +136,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             ) : (
               <Moon className="w-4 h-4 text-black" />
             )}
+          </button>
+
+          {/* Refresh Entire Web Page Button (User custom data & deletions stay permanently saved) */}
+          <button
+            onClick={() => window.location.reload()}
+            className="p-1.5 sm:p-2 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 border border-black/10 dark:border-white/15 text-black dark:text-white transition shadow-sm active:scale-90"
+            title="Refresh web page (Your saved products & deletions remain intact)"
+            aria-label="Refresh web page"
+          >
+            <RotateCw className="w-4 h-4" />
           </button>
 
           {/* Settings Trigger with Active State */}
